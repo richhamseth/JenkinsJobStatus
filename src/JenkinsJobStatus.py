@@ -1,7 +1,7 @@
 from oauth2client.client import SignedJwtAssertionCredentials
 import requests
 import json
-import pandas
+#import pandas
 import gspread
 import datetime
 import datetime
@@ -42,8 +42,8 @@ def buildId(job, Id, first, second):
 		build_no_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/'+str(i+1)+'/api/json'
 		build_no_res = requests.get(build_no_url, auth=auth)
 		
-		result_ms=pandas.to_datetime(str(build_no_res.json()["timestamp"]),unit='ms')
-		temp = result_ms.strftime('%Y-%m-%d')
+		#result_ms=pandas.to_datetime(str(build_no_res.json()["timestamp"]),unit='ms')
+		#temp = result_ms.strftime('%Y-%m-%d')
 
 		#if str(now.strftime("%Y-%m-%d"))==str(temp):
 		#if str(now)==str(temp):
