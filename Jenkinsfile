@@ -23,8 +23,9 @@ pipeline {
         
         stage("Launch service") {        
             steps { 
-                sh "docker rm -f suku_job_status_info"
-                sh "docker run  --name suku_job_status_info job_status_info"
+                //sh "docker rm -f suku_job_status_info"
+                //sh "docker run  --name suku_job_status_info job_status_info"
+                sh "docker run  job_status_info"
             }
         } 
     }
