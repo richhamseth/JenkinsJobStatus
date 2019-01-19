@@ -108,16 +108,12 @@ def getjobsname():
 			#buildId(res.json()["jobs"][i]["name"], len(job_res.json()["builds"]), first, second)
 
 	#print (arr)
-	additionaljob = []
 	if len(arr) != len(var):
-		for i in arr:
-			for j in var:
-				if i != j:
-					additionaljob.append(i)
+		additionaljob = list(set(arr).difference(set(var)))
 
 	fetchjobstatus(var, first, second)
 
 	if additionaljob != []:
+		print (additionaljob)
 		join_additional_jobs(additionaljob, first, second)
-
 getjobsname()
