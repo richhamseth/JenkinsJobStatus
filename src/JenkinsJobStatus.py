@@ -116,6 +116,7 @@ def getjobsname():
 		fetchjobstatus(var, first, second)
 
 	if additionaljob != []:
-		join_additional_jobs(additionaljob, first, second)
+		print ("s")
+		#join_additional_jobs(additionaljob, first, second)
 
 getjobsname()
