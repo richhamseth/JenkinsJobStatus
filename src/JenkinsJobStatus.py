@@ -111,12 +111,13 @@ def getjobsname():
 	additionaljob = []
 	if len(arr) != len(var):
 		for i in arr:
-			additionaljob.append(i)
-	else:
-		fetchjobstatus(var, first, second)
+			for j in var:
+				if i != j:
+					additionaljob.append(i)
+
+	fetchjobstatus(var, first, second)
 
 	if additionaljob != []:
-		print ("s")
 		join_additional_jobs(additionaljob, first, second)
 
 getjobsname()
