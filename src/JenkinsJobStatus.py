@@ -1,7 +1,6 @@
 from oauth2client.client import SignedJwtAssertionCredentials
 import requests
 import json
-#import pandas
 import gspread
 import datetime
 import datetime
@@ -12,7 +11,6 @@ urllib3.disable_warnings()
 url = 'https://sukulab.co/jenkins/api/json'
 auth = ('cr_reviewer','rgdfm419@')
 now = datetime.datetime.now()
-#now = "2019-12-24"
 
 def gspreedauthorized():
     json_key = json.load(open('creds.json'))
@@ -27,11 +25,8 @@ def gspreedauthorized():
 
 sheet = gspreedauthorized()
 var = sheet.row_values(1)
-#var.remove('')
 var = [x for x in var if x != '']
 del var[0]
-
-#sheet.merge_cells(start_row=4, start_column=1, end_row=4, end_column=2)
 
 def buildId(job, Id, first, second):
 	sheet = gspreedauthorized()
@@ -42,11 +37,6 @@ def buildId(job, Id, first, second):
 		build_no_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/'+str(i+1)+'/api/json'
 		build_no_res = requests.get(build_no_url, auth=auth)
 		
-		#result_ms=pandas.to_datetime(str(build_no_res.json()["timestamp"]),unit='ms')
-		#temp = result_ms.strftime('%Y-%m-%d')
-
-		#if str(now.strftime("%Y-%m-%d"))==str(temp):
-		#if str(now)==str(temp):
 		print (str(build_no_res.json()["result"]))
 		if str(build_no_res.json()["result"])=="SUCCESS":
 			success.append("SUCCESS")
@@ -86,13 +76,9 @@ def getjobsname():
 	sheet = gspreedauthorized()
 	sheet.update_cell(len(sheet.col_values(1))+1, 1, now.strftime("%Y-%m-%d"))
 	first = len(sheet.col_values(2))+1
-	#sheet.update_cell(len(sheet.col_values(2))+1, 2, "SUCCESS")
 	second = len(sheet.col_values(2))+1
-	#sheet.update_cell(len(sheet.col_values(2))+1, 2, "FAILURE")
 	res = requests.get(url, auth=auth)
 	arr = []
-	#jobslist = jobslist(arr)
-	#if len(jobslist)==
 	for i in range(len(res.json()["jobs"])):
 		print (res.json()["jobs"][i]["name"])
 		if str(res.json()["jobs"][i]["name"])=="sandbox":
@@ -100,14 +86,8 @@ def getjobsname():
 		else:
 			Job_url = 'https://sukulab.co/jenkins/job/'+str(res.json()["jobs"][i]["name"])+'/api/json'
 			job_res = requests.get(Job_url, auth=auth)
-			#print (res.json()["jobs"][i]["name"])
-			#print (len(job_res.json()["builds"]))
-			#print (len(sheet.row_values(1)))
-			#sheet.update_cell(1, len(sheet.row_values(1))+1, str(res.json()["jobs"][i]["name"]))
 			arr.append(res.json()["jobs"][i]["name"])
-			#buildId(res.json()["jobs"][i]["name"], len(job_res.json()["builds"]), first, second)
 
-	#print (arr)
 	if len(arr) != len(var):
 		additionaljob = list(set(arr).difference(set(var)))
 
