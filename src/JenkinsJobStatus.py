@@ -73,7 +73,7 @@ def fetchjobstatus(var, first, second):
 		job_res = requests.get(Job_url, auth=auth)
 		buildId(i, len(job_res.json()["builds"]), first, second)
 
-def join_additional_jobs(additionaljob, first):
+def join_additional_jobs(additionaljob, first, second):
 	for i in additionaljob:
 		sheet.update_cell(1, len(sheet.row_values(1))+2, i)
 		sheet.update_cell(2, len(sheet.row_values(1))+1, "Success")
@@ -117,6 +117,6 @@ def getjobsname():
 
 	if additionaljob != []:
 		print ("s")
-		#join_additional_jobs(additionaljob, first, second)
+		join_additional_jobs(additionaljob, first, second)
 
 getjobsname()
