@@ -88,6 +88,7 @@ def getjobsname():
 			job_res = requests.get(Job_url, auth=auth)
 			arr.append(res.json()["jobs"][i]["name"])
 
+	additionaljob = []
 	if len(arr) != len(var):
 		additionaljob = list(set(arr).difference(set(var)))
 
