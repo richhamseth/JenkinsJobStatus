@@ -1,16 +1,15 @@
-from oauth2client.client import SignedJwtAssertionCredentials
-import requests
 import json
 import gspread
+import requests
+from oauth2client.client import SignedJwtAssertionCredentials
+import dateutil.parser as dp
+import datetime as DT
 import datetime
-import datetime
-
 import urllib3
 urllib3.disable_warnings()
 
-url = 'https://sukulab.co/jenkins/api/json'
-auth = ('cr_reviewer','rgdfm419@')
-now = datetime.datetime.now()
+url = 'http://192.168.1.44:5000/taskDetails'
+today = datetime.datetime.now().strftime("%Y-%m-%d")
 
 def gspreedauthorized():
     json_key = json.load(open('creds.json'))
@@ -20,81 +19,40 @@ def gspreedauthorized():
     credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'].encode(), scope)
 
     file = gspread.authorize(credentials)
-    sheet = file.open("Jenkins Status").sheet1
+    sheet = file.open("Members details").sheet1
     return sheet
 
 sheet = gspreedauthorized()
-var = sheet.row_values(1)
-var = [x for x in var if x != '']
-del var[0]
 
-def buildId(job, Id, first, second):
-	sheet = gspreedauthorized()
-	success = []
-	failure = []
+def updatetask(data):
+	col = len(sheet.col_values(1))
+	sheet.update_acell('A'+str(col+1), data['employeeID'])
+	sheet.update_acell('B'+str(col+1), today)
+	sheet.update_acell('C'+str(col+1), data['WorkId'])
+	sheet.update_acell('D'+str(col+1), data['ActivityId'])
+	sheet.update_acell('E'+str(col+1), data['ExtRefId'])
+	sheet.update_acell('F'+str(col+1), data['Hrs'])
+	sheet.update_acell('G'+str(col+1), data['Mins'])
+	sheet.update_acell('H'+str(col+1), data['TaskDetails'])
 
-	for i in range(Id):
-		build_no_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/'+str(i+1)+'/api/json'
-		build_no_res = requests.get(build_no_url, auth=auth)
-		
-		print (str(build_no_res.json()["result"]))
-		if str(build_no_res.json()["result"])=="SUCCESS":
-			success.append("SUCCESS")
-		else:
-			failure.append("FAILURE")
+def employeeupdate(sheet):
+    headers = {"Content-Type":"application/json", "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZUlEIjoiZW1wbG95ZWVJRCIsImlhdCI6MTU0NDg1NDA0OX0.BS1S0kOZd3Rvd8DgANpWTnMdQHgeFirlmgGSqjNqAWk"}
+    empreq = requests.get(url, headers=headers)
+    #print (empreq.content)
 
-	print (len(success))
-	print (len(failure))
-	sheet.update_cell(first, len(sheet.row_values(first))+1, len(success))
-	sheet.update_cell(first, len(sheet.row_values(first))+1, len(failure))
+    for j in range(len(empreq.json()['data'])):
+    	#date = datetime.datetime.strptime(empreq.json()['data'][j]['Date'], "%Y-%m-%dT%H:%M:%S.%fZ").date()
+    	#print (date)
 
-def jobslist(arr):
-	res = requests.get(url, auth=auth)
-	for i in range(len(res.json()["jobs"])):
-		if str(res.json()["jobs"][i]["name"])=="sandbox":
-			print ("testing")
-		else:
-			arr.append(str(res.json()["jobs"][i]["name"]))
-	return arr
+    	t = datetime.datetime.today().isoformat()
+    	parsed_t = dp.parse(empreq.json()['data'][j]['Date'])
+    	t_in_seconds = parsed_t.strftime('%s')
+    	since = DT.datetime.utcfromtimestamp(int(t_in_seconds)+86400).isoformat()
 
-def fetchjobstatus(var, first, second):
-	for i in var:
-		Job_url = 'https://sukulab.co/jenkins/job/'+str(i)+'/api/json'
-		job_res = requests.get(Job_url, auth=auth)
-		buildId(i, len(job_res.json()["builds"]), first, second)
+    	date = datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S.%fZ").date()
 
-def join_additional_jobs(additionaljob, first, second):
-	for i in additionaljob:
-		sheet.update_cell(1, len(sheet.row_values(1))+2, i)
-		sheet.update_cell(2, len(sheet.row_values(1))+1, "Success")
-		sheet.update_cell(2, len(sheet.row_values(1))+1, "Failure")
-		Job_url = 'https://sukulab.co/jenkins/job/'+str(i)+'/api/json'
-		job_res = requests.get(Job_url, auth=auth)
-		buildId(i, len(job_res.json()["builds"]), first, second)
+    	if str(date) == str(today):
+    		print (date)
+    		updatetask(empreq.json()['data'][j])
 
-def getjobsname():
-	sheet = gspreedauthorized()
-	sheet.update_cell(len(sheet.col_values(1))+1, 1, now.strftime("%Y-%m-%d"))
-	first = len(sheet.col_values(2))+1
-	second = len(sheet.col_values(2))+1
-	res = requests.get(url, auth=auth)
-	arr = []
-	for i in range(len(res.json()["jobs"])):
-		print (res.json()["jobs"][i]["name"])
-		if str(res.json()["jobs"][i]["name"])=="sandbox":
-			print ("testing")
-		else:
-			Job_url = 'https://sukulab.co/jenkins/job/'+str(res.json()["jobs"][i]["name"])+'/api/json'
-			job_res = requests.get(Job_url, auth=auth)
-			arr.append(res.json()["jobs"][i]["name"])
-
-	additionaljob = []
-	if len(arr) != len(var):
-		additionaljob = list(set(arr).difference(set(var)))
-
-	fetchjobstatus(var, first, second)
-
-	if additionaljob != []:
-		print (additionaljob)
-		join_additional_jobs(additionaljob, first, second)
-getjobsname()
+employeeupdate(sheet)
