@@ -32,16 +32,44 @@ def buildId(job, Id, first, second):
 	sheet = gspreedauthorized()
 	success = []
 	failure = []
+	print (Id)
 
-	for i in range(Id):
-		build_no_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/'+str(i+1)+'/api/json'
+	for i in range(len(Id["builds"])):
+		build_no_url = str(Id["builds"][i]["url"])+'/api/json'
 		build_no_res = requests.get(build_no_url, auth=auth)
 		
-		print (str(build_no_res.json()["result"]))
+		#print (str(build_no_res.json()["result"]))
 		if str(build_no_res.json()["result"])=="SUCCESS":
 			success.append("SUCCESS")
 		else:
 			failure.append("FAILURE")
+
+	print (len(success))
+	print (len(failure))
+	sheet.update_cell(first, len(sheet.row_values(first))+1, len(success))
+	sheet.update_cell(first, len(sheet.row_values(first))+1, len(failure))
+
+def branchbuildId(job, first, second, jobs):
+	sheet = gspreedauthorized()
+	success = []
+	failure = []
+	print (jobs)
+
+	for i in jobs:
+		Job_url = str(i['url'])+'/api/json'
+		job_res = requests.get(Job_url, auth=auth)
+		#branchbuildId(job, len(job_res.json()["builds"]), first, second)
+		print ("********************************************************************************************")
+		for j in range(len(job_res.json()["builds"])):
+			build_no_url = str(job_res.json()["builds"][j]["url"])+'/api/json'
+			#build_no_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/job/'+str(i['name'])+'/'+str(j+1)+'/api/json'
+			build_no_res = requests.get(build_no_url, auth=auth)
+
+			#print (build_no_res.content)
+			if str(build_no_res.json()["result"])=="SUCCESS":
+				success.append("SUCCESS")
+			else:
+				failure.append("FAILURE")
 
 	print (len(success))
 	print (len(failure))
@@ -57,11 +85,25 @@ def jobslist(arr):
 			arr.append(str(res.json()["jobs"][i]["name"]))
 	return arr
 
+def fetchbranchjobs(job, first, second, jobs):
+	for i in jobs:
+		Job_url = 'https://sukulab.co/jenkins/job/'+str(job)+'/job/'+str(i['name'])+'/api/json'
+		job_res = requests.get(Job_url, auth=auth)
+
+		branchbuildId(job, job_res.json(), first, second)
+
 def fetchjobstatus(var, first, second):
 	for i in var:
 		Job_url = 'https://sukulab.co/jenkins/job/'+str(i)+'/api/json'
 		job_res = requests.get(Job_url, auth=auth)
-		buildId(i, len(job_res.json()["builds"]), first, second)
+		for j,index in enumerate (job_res.json()):
+			if index == 'builds':
+				print (j , index)
+				buildId(i, job_res.json(), first, second)
+
+			elif index == 'jobs':
+				print (j , index)
+				branchbuildId(i, first, second, job_res.json()["jobs"])
 
 def join_additional_jobs(additionaljob, first, second):
 	for i in additionaljob:
@@ -70,7 +112,6 @@ def join_additional_jobs(additionaljob, first, second):
 		sheet.update_cell(2, len(sheet.row_values(1))+1, "Failure")
 		Job_url = 'https://sukulab.co/jenkins/job/'+str(i)+'/api/json'
 		job_res = requests.get(Job_url, auth=auth)
-		buildId(i, len(job_res.json()["builds"]), first, second)
 
 def getjobsname():
 	sheet = gspreedauthorized()
